@@ -1,73 +1,116 @@
-# React + TypeScript + Vite
+# Video Encryption Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A local-first app for encrypting and decrypting video files with password-based protection.
 
-Currently, two official plugins are available:
+Built with React + TypeScript + Vite for the UI, with optional Electron packaging for desktop distribution.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Drag-and-drop video or encrypted `.enc` files.
+- Automatic encrypted file detection.
+- Encrypt videos with a password and download the encrypted output.
+- Decrypt encrypted files in memory for playback (without writing decrypted video to disk).
+- Clear status and error messaging for wrong password/tampered data scenarios.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Security Model
 
-## Expanding the ESLint configuration
+The app encrypts video data using:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- `AES-256-GCM` for authenticated encryption
+- `PBKDF2-SHA256` for key derivation from the user password
+- 600,000 PBKDF2 iterations
+- Random salt and IV per file
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Encrypted files are stored in a custom payload format and typically saved with a `.enc` extension.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- React 19
+- TypeScript
+- Vite 8
+- Tailwind CSS 4
+- Electron (for desktop app shell)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+ (recommended)
+- npm 10+ (or compatible npm version)
+
+### Install
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Run in browser (dev)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Open the local URL shown by Vite (usually `http://localhost:5173`).
+
+### Run as Electron app (dev)
+
+```bash
+npm run electron:dev
+```
+
+This starts the Vite dev server and launches Electron once the app is ready.
+
+## Build Commands
+
+### Build web app
+
+```bash
+npm run build
+```
+
+### Preview production web build
+
+```bash
+npm run preview
+```
+
+### Package Electron app (unpacked)
+
+```bash
+npm run electron:pack
+```
+
+### Build macOS distributables
+
+```bash
+npm run electron:dist:mac
+```
+
+Artifacts are written to the `release` directory.
+
+## Available Scripts
+
+- `npm run dev` - Start Vite dev server
+- `npm run build` - Type-check and build production web assets
+- `npm run preview` - Preview built web assets
+- `npm run lint` - Run ESLint
+- `npm run electron:dev` - Run Vite + Electron in development
+- `npm run electron:pack` - Build and package Electron app directory
+- `npm run electron:dist:mac` - Build and create macOS distributables
+
+## Project Structure
+
+```text
+src/
+  components/   # UI components (drop zone, player, panels)
+  lib/          # crypto, format parsing, encrypted-file detection
+  App.tsx       # main app flow (detect/encrypt/decrypt/play)
+electron/
+  main.cjs      # Electron main process entry
+  preload.cjs   # Safe preload bridge
+```
+
+## Notes
+
+- This app processes files locally on the device; it does not upload video content to any server.
+- Use strong, unique passwords and keep backups of originals. If you lose the password, encrypted files cannot be recovered.
